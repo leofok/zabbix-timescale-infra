@@ -80,3 +80,5 @@
   when: zbx_enable_timescaledb | bool
   shell: |
     "{{ zbx_root_dir }}/scripts/init-timescaledb.sh" "{{ zbx_compose_file }}"
+  args:
+    chdir: "{{ zbx_repo_dir }}"
