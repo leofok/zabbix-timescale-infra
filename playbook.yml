@@ -1,0 +1,8 @@
+---
+- name: Deploy Zabbix with optional TimescaleDB and rootless settings
+  hosts: zabbix
+  become: yes
+
+  roles:
+    - docker
+    - zabbix-timescale

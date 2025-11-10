@@ -1,0 +1,23 @@
+---
+- name: Install dependencies
+  apt:
+    name: [curl, ca-certificates]
+    state: present
+    update_cache: yes
+
+- name: Install Docker if not exists
+  shell: |
+    if ! command -v docker >/dev/null 2>&1; then
+      curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+      sh /tmp/get-docker.sh
+      rm -f /tmp/get-docker.sh
+    fi
+  args:
+    creates: /usr/bin/docker
+
+- name: Install docker compose plugin
+  apt:
+    name: docker-compose-plugin
+    state: present
+  register: docker_compose_result
+  failed_when: false

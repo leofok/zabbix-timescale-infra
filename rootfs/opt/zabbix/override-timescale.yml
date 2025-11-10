@@ -1,0 +1,6 @@
+services:
+  postgres-server:
+    image: timescale/timescaledb:2.22.1-pg17
+    command: ["-c", "shared_preload_libraries=timescaledb"]
+    environment:
+      - TIMESCALEDB_TELEMETRY=off

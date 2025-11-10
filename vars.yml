@@ -1,0 +1,21 @@
+# Zabbix 版本選擇：
+# - "7.4"：最新穩定版（預設）
+# - "7.0"：LTS 長期支援版
+zbx_version: "7.4"
+
+# 官方 zabbix-docker repo 設定
+zbx_repo_url: "https://github.com/zabbix/zabbix-docker.git"
+zbx_repo_ref: "{{ zbx_version }}"          # 直接用版本當 branch/tag
+zbx_repo_dir: "/opt/zabbix/zabbix-docker"
+
+# 官方 compose 檔名（由官方 repo 提供）
+zbx_compose_file: "docker-compose_v3_ubuntu_pgsql_latest.yaml"
+
+# 我方自定檔案與腳本所在路徑
+zbx_root_dir: "/opt/zabbix"
+
+# 是否啟用 TimescaleDB（true/false）
+zbx_enable_timescaledb: true
+
+# 是否對應 rootless Docker，允許非 root 綁定 80 port（true/false）
+zbx_enable_rootless_ports: false

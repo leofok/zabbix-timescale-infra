@@ -1,0 +1,75 @@
+---
+- name: Load vars
+  include_vars:
+    file: "{{ playbook_dir }}/vars.yml"
+
+# 只在需要 rootless 時套用 sysctl
+- name: Deploy rootless sysctl config (if enabled)
+  when: zbx_enable_rootless_ports | bool
+  copy:
+    src: "{{ playbook_dir }}/rootfs/etc/sysctl.d/99-zabbix-rootless.conf"
+    dest: "/etc/sysctl.d/99-zabbix-rootless.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload sysctl (if rootless enabled)
+  when: zbx_enable_rootless_ports | bool
+  shell: sysctl --system
+
+# 確保 /opt/zabbix 存在
+- name: Ensure zabbix root dir exists
+  file:
+    path: "{{ zbx_root_dir }}"
+    state: directory
+    mode: "0755"
+
+# 如果啟用 TimescaleDB，部署 override 與 init 腳本
+- name: Deploy Timescale override (if enabled)
+  when: zbx_enable_timescaledb | bool
+  copy:
+    src: "{{ playbook_dir }}/rootfs/opt/zabbix/override-timescale.yml"
+    dest: "{{ zbx_root_dir }}/override-timescale.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy Timescale init script (if enabled)
+  when: zbx_enable_timescaledb | bool
+  copy:
+    src: "{{ playbook_dir }}/rootfs/opt/zabbix/scripts/init-timescaledb.sh"
+    dest: "{{ zbx_root_dir }}/scripts/init-timescaledb.sh"
+    owner: root
+    group: root
+    mode: "0755"
+
+# 下載官方 zabbix-docker（不存進你的 repo）
+- name: Ensure zabbix-docker parent dir exists
+  file:
+    path: "{{ zbx_repo_dir | dirname }}"
+    state: directory
+
+- name: Checkout official zabbix-docker repo
+  git:
+    repo: "{{ zbx_repo_url }}"
+    dest: "{{ zbx_repo_dir }}"
+    version: "{{ zbx_repo_ref }}"
+    force: yes
+
+# 啟動：依 timescaledb 開關決定是否套 override
+- name: Start Zabbix stack
+  shell: |
+    cd "{{ zbx_repo_dir }}"
+    if [ "{{ zbx_enable_timescaledb | bool }}" = "True" ] && [ -f "{{ zbx_root_dir }}/override-timescale.yml" ]; then
+      docker compose -f "{{ zbx_compose_file }}" -f "{{ zbx_root_dir }}/override-timescale.yml" up -d
+    else
+      docker compose -f "{{ zbx_compose_file }}" up -d
+    fi
+  args:
+    chdir: "{{ zbx_repo_dir }}"
+
+# 若有啟用 TimescaleDB，執行初始化腳本
+- name: Initialize TimescaleDB (if enabled)
+  when: zbx_enable_timescaledb | bool
+  shell: |
+    "{{ zbx_root_dir }}/scripts/init-timescaledb.sh" "{{ zbx_compose_file }}"
