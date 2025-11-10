@@ -34,6 +34,13 @@
     group: root
     mode: "0644"
 
+- name: Ensure scripts dir exists (if enabled)
+  when: zbx_enable_timescaledb | bool
+  file:
+    path: "{{ zbx_root_dir }}/scripts"
+    state: directory
+    mode: "0755"
+
 - name: Deploy Timescale init script (if enabled)
   when: zbx_enable_timescaledb | bool
   copy:
