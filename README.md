@@ -31,10 +31,11 @@ cp inventory.example.ini inventory.ini
 # 編輯 inventory.ini，填入 Zabbix 目標主機 IP / 帳號
 
 ansible-playbook -i inventory.ini playbook.yml
-
+```
 
 ## 在目標主機本機部署
 
+```bash
 sudo apt update
 sudo apt install -y ansible git
 
@@ -47,3 +48,4 @@ localhost ansible_connection=local
 EOF
 
 ansible-playbook -i inventory.ini playbook.yml
+```
